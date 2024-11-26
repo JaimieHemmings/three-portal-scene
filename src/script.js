@@ -33,14 +33,18 @@ const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(dracoLoader)
 
 /**
- * Object
+ * bakedTextures
  */
-const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial()
-)
 
-scene.add(cube)
+const bakedTexture = textureLoader.load('baked.jpg')
+bakedTexture.flipY = false
+bakedTexture.colorSpace = THREE.SRGBColorSpace
+
+/**
+ * Materials
+ */
+
+const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture })
 
 /**
  * Load model
@@ -48,9 +52,16 @@ scene.add(cube)
 
 gltfLoader.load(
     'portal.glb',
-    () =>
+    (gltf) =>
     {
-        console.log('success')
+        gltf.scene.traverse((child) =>
+        {
+            if(child instanceof THREE.Mesh)
+            {
+                child.material = bakedMaterial
+            }
+        })
+        scene.add(gltf.scene)
     }
 )
 
