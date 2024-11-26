@@ -36,7 +36,7 @@ gltfLoader.setDRACOLoader(dracoLoader)
  * bakedTextures
  */
 
-const bakedTexture = textureLoader.load('baked.jpg')
+const bakedTexture = textureLoader.load('baked.webp')
 bakedTexture.flipY = false
 bakedTexture.colorSpace = THREE.SRGBColorSpace
 
