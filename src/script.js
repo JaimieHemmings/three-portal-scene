@@ -2,11 +2,11 @@ import GUI from 'lil-gui'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import FirefliesFragmentShader from './shaders/fireflies/fragment.glsl'
 import FirefliesVertexShader from './shaders/fireflies/vertex.glsl'
 import PortalFragmentShader from './shaders/portal/fragment.glsl'
 import PortalVertexShader from './shaders/portal/vertex.glsl'
+import { gsap } from 'gsap'
 
 /**
  * Base
@@ -16,19 +16,72 @@ const debugObject = {}
 const gui = new GUI({
     width: 400
 })
+gui.hide()
+
+// Toggle GUI when press h
+document.addEventListener('keydown', (event) =>
+{
+    if (event.key === 'h')
+    {
+        gui.isVisible ? gui.hide() : gui.show()
+        gui.isVisible = !gui.isVisible
+    }
+})
 
 // Canvas and scene
 const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
+ * Overlay
+ */
+
+const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1)
+const overlayMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+        void main()
+        {
+            gl_Position = vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform float uAlpha; 
+        void main()
+        {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
+        }
+    `,
+    transparent: true,
+    uniforms: {
+        uAlpha: { value: 1.0 }
+    }
+})
+const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
+scene.add(overlay)
+
+/**
  * Loaders
  */
-const textureLoader = new THREE.TextureLoader()
-const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath('draco/')
-const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
+
+const loadingBarElement = document.querySelector('.loading-bar')
+
+const LoadingManager = new THREE.LoadingManager(
+    // Loaded
+    () => {
+        window.setTimeout(() => {
+            gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0 })
+            loadingBarElement.classList.add('ended')
+            loadingBarElement.style.transform = ''
+        }, 500)
+    },
+    // Progress
+    (itemUrl, itemsLoaded, itemsTotal) => {
+        const progress = itemsLoaded / itemsTotal
+        loadingBarElement.style.transform = `scaleX(${progress})`
+    }
+)
+const textureLoader = new THREE.TextureLoader(LoadingManager)
+const gltfLoader = new GLTFLoader(LoadingManager)
 
 /**
  * bakedTextures
@@ -131,8 +184,6 @@ gui.add(firefliesMaterial.uniforms.uSize, 'value').min(0).max(500).step(1).name(
 // Points
 const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial)
 scene.add(fireflies)
-
-
 
 /**
  * Sizes
