@@ -148,9 +148,9 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 4
-camera.position.y = 2
-camera.position.z = 4
+camera.position.y = Math.PI * 0.45
+camera.position.z = 3.2
+camera.position.x = Math.cos( Math.PI / 2 )
 scene.add(camera)
 
 // Controls
@@ -168,7 +168,7 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 // debug parameters
-debugObject.clearColor = '#000000'
+debugObject.clearColor = '#639c9c'
 renderer.setClearColor(debugObject.clearColor)
 gui.addColor(debugObject, 'clearColor').onChange(() =>
 {
