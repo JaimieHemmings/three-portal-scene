@@ -2,6 +2,8 @@
 
 Live site: [Click Here](https://monumental-marigold-15cc4d.netlify.app/)
 
+![Banner Image](docs/banner.jpg)
+
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
 Run this followed commands:
