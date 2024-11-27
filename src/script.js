@@ -5,13 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import FirefliesFragmentShader from './shaders/fireflies/fragment.glsl'
 import FirefliesVertexShader from './shaders/fireflies/vertex.glsl'
-// import * as SPECTOR from "spectorjs";
-
-/**
- * Spector Setup
- */
-// const spector = new SPECTOR.Spector()
-// spector.displayUI();
+import PortalFragmentShader from './shaders/portal/fragment.glsl'
+import PortalVertexShader from './shaders/portal/vertex.glsl'
 
 /**
  * Base
@@ -45,15 +40,38 @@ bakedTexture.colorSpace = THREE.SRGBColorSpace
 /**
  * Materials
  */
+// Debug parameters
+debugObject.portalColorStart = '#000000'
+debugObject.portalColorEnd = '#FF1493'
+gui.addColor(debugObject, 'portalColorStart').onChange(() =>
+    {
+        portalLightMaterial.uniforms.uColorStart.value.set(debugObject.portalColorStart)
+    }
+)
+gui.addColor(debugObject, 'portalColorEnd').onChange(() =>
+    {
+        portalLightMaterial.uniforms.uColorEnd.value.set(debugObject.portalColorEnd)
+    }
+)
+
 const bakedMaterial = new THREE.MeshBasicMaterial({
     map: bakedTexture
 })
 const poleLightMaterial = new THREE.MeshBasicMaterial({
     color: 0xffffe5
 })
-const portalLightMaterial = new THREE.MeshBasicMaterial({
-    color: 0x00ff00, side: THREE.DoubleSide
+const portalLightMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 },
+        uColorStart: { value: new THREE.Color(debugObject.portalColorStart) },
+        uColorEnd: { value: new THREE.Color(debugObject.portalColorEnd) },
+    },
+    side: THREE.DoubleSide,
+    vertexShader: PortalVertexShader,
+    fragmentShader: PortalFragmentShader,
 })
+
+// debug parameters
 
 /**
  * Load model
@@ -78,7 +96,6 @@ gltfLoader.load(
 /**
  * Fireflies
  */
-
 const firefliesGeometry = new THREE.BufferGeometry()
 let firefliesCount = 30
 const positionArray = new Float32Array(firefliesCount * 3)
@@ -149,7 +166,7 @@ window.addEventListener('resize', () =>
 // Base camera
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
 camera.position.y = Math.PI * 0.45
-camera.position.z = 3.2
+camera.position.z = 4
 camera.position.x = Math.cos( Math.PI / 2 )
 scene.add(camera)
 
@@ -184,8 +201,9 @@ const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
 
-    // Update fireflies
+    // Update materials
     firefliesMaterial.uniforms.uTime.value = elapsedTime
+    portalLightMaterial.uniforms.uTime.value = elapsedTime
 
     // Update controls
     controls.update()
